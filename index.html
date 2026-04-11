@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outletin</title>
+
+    <link rel="stylesheet" href="/outletin/scr/output.tmp.css">
+</head>
+<body class="bg-red-50 text-slate-900">
+
+<header class="sticky top-0 z-50 border-b border-red-100 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+        <a href="#home" class="text-3xl font-black tracking-tight text-red-900">Outletin</a>
+        <nav class="hidden items-center gap-6 text-sm font-medium md:flex">
+            <a href="#home" class="transition hover:text-red-800">Home</a>
+            <a href="#features" class="transition hover:text-red-800">Fitur</a>
+            <a href="#about" class="transition hover:text-red-800">Tentang</a>
+            <a href="public/login.php" class="btn">Login</a>
+        </nav>
+    </div>
+</header>
+
+<section id="home" class="overflow-hidden">
+    <div class="mx-auto grid min-h-[calc(100vh-73px)] max-w-6xl items-center gap-12 px-4 py-16 lg:grid-cols-2">
+        <div class="space-y-6">
+            <span class="inline-flex rounded-full border border-red-200 bg-white px-3 py-1 text-sm font-medium text-red-800 shadow-sm">
+                Platform manajemen outlet modern
+            </span>
+            <h1 class="max-w-xl text-5xl font-black leading-tight text-red-950 md:text-6xl">
+                Semua Outlet Ada di Sini
+            </h1>
+            <p class="max-w-xl text-lg leading-8 text-slate-600">
+                Kelola seluruh outlet, produk, dan operasional bisnis Anda 
+                dalam satu platform yang simpel dan terintegrasi.
+            </p>
+            <div class="flex flex-wrap gap-3">
+                <a href="public/login.php" class="btn">Mulai Sekarang</a>
+                <a href="public/register.php" class="inline-flex items-center justify-center rounded-lg border border-red-300 px-4 py-2 font-medium text-red-800 transition hover:bg-red-100">
+                    Daftar
+                </a>
+            </div>
+            <div class="grid max-w-xl grid-cols-3 gap-4 pt-4">
+                <div class="card p-4">
+                    <p class="text-2xl font-black text-red-900">100+</p>
+                    <p class="text-sm text-slate-500">Outlet aktif</p>
+                </div>
+                <div class="card p-4">
+                    <p class="text-2xl font-black text-red-900">5000+</p>
+                    <p class="text-sm text-slate-500">Produk dikelola</p>
+                </div>
+                <div class="card p-4">
+                    <p class="text-2xl font-black text-red-900">99%</p>
+                    <p class="text-sm text-slate-500">Pengguna puas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative">
+            <div class="absolute inset-0 -z-10 rounded-[2rem] bg-gradient-to-br from-red-200 via-amber-100 to-white blur-3xl"></div>
+            <div class="card space-y-6 rounded-[2rem] border-red-200 bg-white/95 p-8">
+                <div class="flex items-center justify-between rounded-2xl bg-red-900 px-5 py-4 text-white">
+                    <div>
+                        <p class="text-sm text-red-100">Dashboard Outlet</p>
+                        <p class="text-xl font-bold">Outletin Control</p>
+                    </div>
+                    <div class="rounded-xl bg-white/15 px-3 py-2 text-sm">Live</div>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-2xl bg-red-50 p-5">
+                        <p class="text-sm text-slate-500">Outlet</p>
+                        <p class="mt-2 text-3xl font-black text-red-900">24</p>
+                    </div>
+                    <div class="rounded-2xl bg-amber-50 p-5">
+                        <p class="text-sm text-slate-500">Produk</p>
+                        <p class="mt-2 text-3xl font-black text-red-900">1.284</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div class="rounded-2xl border border-red-100 p-4">
+                        <div class="mb-2 flex items-center justify-between">
+                            <p class="font-semibold text-slate-800">Penjualan Hari Ini</p>
+                            <span class="text-sm text-emerald-700">+12%</span>
+                        </div>
+                        <div class="h-3 rounded-full bg-red-100">
+                            <div class="h-3 w-3/4 rounded-full bg-red-800"></div>
+                        </div>
+                    </div>
+                    <div class="rounded-2xl border border-red-100 p-4">
+                        <p class="font-semibold text-slate-800">Semua outlet terhubung real-time</p>
+                        <p class="mt-1 text-sm leading-6 text-slate-500">
+                            Pantau stok, produk, dan performa cabang dari satu dashboard.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="features" class="py-20">
+    <div class="mx-auto max-w-6xl px-4">
+        <div class="mb-10 max-w-2xl">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-red-700">Fitur Utama</p>
+            <h2 class="mt-3 text-4xl font-black text-red-950">Semua alat penting untuk operasional outlet</h2>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <div class="card">
+                <h3 class="text-xl font-bold text-red-900">Manajemen Outlet</h3>
+                <p class="mt-3 leading-7 text-slate-600">Kelola semua cabang dan outlet dalam satu dashboard dengan mudah.</p>
+            </div>
+
+            <div class="card">
+                <h3 class="text-xl font-bold text-red-900">Manajemen Produk</h3>
+                <p class="mt-3 leading-7 text-slate-600">Atur produk, harga, dan stok secara real-time tanpa ribet.</p>
+            </div>
+
+            <div class="card">
+                <h3 class="text-xl font-bold text-red-900">Multi User</h3>
+                <p class="mt-3 leading-7 text-slate-600">Support franchisor, franchisee, dan karyawan dalam satu sistem.</p>
+            </div>
+
+            <div class="card">
+                <h3 class="text-xl font-bold text-red-900">Terpusat & Efisien</h3>
+                <p class="mt-3 leading-7 text-slate-600">Semua data tersimpan rapi dan bisa diakses kapan saja.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="about" class="py-20">
+    <div class="mx-auto grid max-w-6xl gap-8 px-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div class="card rounded-[2rem] border-red-200 bg-red-900 text-white shadow-2xl">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-red-100">Tentang Outletin</p>
+            <h2 class="mt-4 text-4xl font-black">Bisnis multi-outlet jadi lebih mudah dikendalikan</h2>
+            <p class="mt-5 max-w-2xl text-lg leading-8 text-red-50/90">
+                Outletin adalah solusi digital untuk membantu bisnis dengan banyak outlet 
+                agar lebih mudah dalam mengelola operasional sehari-hari. 
+                Dari pusat hingga cabang, semua terhubung dalam satu sistem.
+            </p>
+        </div>
+
+        <div class="grid gap-6">
+            <div class="card">
+                <h3 class="text-xl font-bold text-red-900">Monitoring real-time</h3>
+                <p class="mt-3 leading-7 text-slate-600">Lihat perkembangan outlet, stok, dan produk tanpa menunggu laporan manual.</p>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-bold text-red-900">Siap berkembang</h3>
+                <p class="mt-3 leading-7 text-slate-600">Struktur data dan alur kerja dibuat untuk bisnis yang terus bertambah cabangnya.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-20">
+    <div class="mx-auto max-w-5xl px-4 text-center">
+        <h2 class="text-4xl font-black text-red-950">Siap Mengelola Outlet Lebih Mudah?</h2>
+        <p class="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+            Mulai sekarang dan rasakan kemudahan mengatur bisnis Anda dari satu tempat.
+        </p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+            <a href="public/login.php" class="btn">Masuk ke Dashboard</a>
+            <a href="public/register.php" class="inline-flex items-center justify-center rounded-lg border border-red-300 px-4 py-2 font-medium text-red-800 transition hover:bg-red-100">
+                Buat Akun
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        const target = document.querySelector(this.getAttribute("href"));
+        if (target) {
+            target.scrollIntoView({ behavior: "smooth" });
+        }
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Outletin</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container" style="max-width: 450px; margin-top: 80px;">
+
+    <div class="card">
+        <h2 style="text-align:center; margin-bottom:10px;">Daftar</h2>
+        <p style="text-align:center; margin-bottom:20px;">
+            Buat akun baru
+        </p>
+
+        <!-- ERROR -->
+        <?php if (isset($_GET['error'])): ?>
+            <div class="alert error">
+                <?php echo htmlspecialchars($_GET['error']); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- FORM -->
+        <form method="post" action="register.php">
+
+            <label>Nama Lengkap</label>
+            <input type="text" name="name" placeholder="Nama lengkap" required>
+
+            <label>Email</label>
+            <input type="email" name="email" placeholder="email@gmail.com" required>
+
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Minimal 6 karakter" required>
+
+            <label>Konfirmasi Password</label>
+            <input type="password" name="confirm_password" placeholder="Ulangi password" required>
+
+            <label>Role</label>
+            <select name="role" required>
+                <option value="">-- Pilih Role --</option>
+                <option value="franchisor">Franchisor</option>
+                <option value="franchisee">Franchisee</option>
+                <option value="karyawan">Karyawan</option>
+            </select>
+
+            <button class="btn" type="submit" style="width:100%; margin-top:10px;">
+                Daftar
+            </button>
+
+        </form>
+
+        <p style="text-align:center; margin-top:15px;">
+            Sudah punya akun? 
+            <a href="login.php">Login</a>
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>
