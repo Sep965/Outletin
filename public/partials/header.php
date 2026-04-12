@@ -13,7 +13,7 @@ $showRegisterBrandMenu = false;
 
 if ($isLoggedIn && $userRole === 'franchisor') {
     $userId = (int) ($_SESSION['user_id'] ?? 0);
-    $brandQuery = $koneksi->prepare("SELECT brand_id FROM brands WHERE user_id = ? LIMIT 1");
+    $brandQuery = $koneksi->prepare("SELECT brand_id FROM brands WHERE franchisor_id = ? LIMIT 1");
     $brandQuery->bind_param("i", $userId);
     $brandQuery->execute();
     $showRegisterBrandMenu = !(bool) $brandQuery->get_result()->fetch_assoc();

@@ -10,65 +10,71 @@ if ($userRole !== 'franchisor') {
     exit;
 }
 
-$brandStmt = $koneksi->prepare("SELECT brand_id, brand_name, description FROM brands WHERE user_id = ? LIMIT 1");
-$brandStmt->bind_param("i", $userId);
-$brandStmt->execute();
-$existingBrand = $brandStmt->get_result()->fetch_assoc();
+/* =========================
+   CEK LOCK TAMBAH BRAND
+========================= */
+$stmt = $koneksi->prepare("
+    SELECT v.status
+    FROM brands b
+    LEFT JOIN verifications v ON b.brand_id = v.brand_id
+    WHERE b.franchisor_id = ?
+    AND (v.status IS NULL OR v.status != 'verified')
+    LIMIT 1
+");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$check = $stmt->get_result()->fetch_assoc();
 
-if ($existingBrand) {
-    header("Location: dashboard.php");
-    exit;
+$lockTambah = false;
+$status = '';
+
+if ($check) {
+    $lockTambah = true;
+    $status = $check['status'] ?? 'pending';
 }
 
+/* =========================
+   FORM INPUT
+========================= */
 $error = '';
-$brandName = '';
-$description = '';
-$productName = '';
-$price = '';
-$stock = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // 🔒 PROTEKSI TAMBAHAN (ANTI BYPASS)
+    if ($lockTambah) {
+        die("Tidak bisa menambah brand sebelum verifikasi selesai.");
+    }
+
     $brandName = trim($_POST['brand_name'] ?? '');
     $description = trim($_POST['description'] ?? '');
-    $productName = trim($_POST['product_name'] ?? '');
-    $price = trim($_POST['price'] ?? '');
-    $stock = trim($_POST['stock'] ?? '');
 
-    if ($brandName === '' || $description === '' || $productName === '' || $price === '' || $stock === '') {
-        $error = 'Nama brand, deskripsi, dan data produk wajib diisi.';
-    } elseif (!is_numeric($price) || (float) $price <= 0 || filter_var($stock, FILTER_VALIDATE_INT) === false || (int) $stock < 0) {
-        $error = 'Harga dan stok produk tidak valid.';
+    if ($brandName === '' || $description === '') {
+        $error = 'Semua field wajib diisi.';
     } else {
-        $priceValue = (float) $price;
-        $stockValue = (int) $stock;
-
-        $koneksi->begin_transaction();
 
         try {
-            $insertStmt = $koneksi->prepare(
-                "INSERT INTO brands (user_id, brand_name, description) VALUES (?, ?, ?)"
-            );
-            $insertStmt->bind_param("iss", $userId, $brandName, $description);
+            $stmt = $koneksi->prepare("
+                INSERT INTO brands (franchisor_id, brand_name, description, created_at)
+                VALUES (?, ?, ?, NOW())
+            ");
+            $stmt->bind_param("iss", $userId, $brandName, $description);
+            $stmt->execute();
 
-            if (!$insertStmt->execute()) {
-                throw new Exception('Brand gagal disimpan.');
-            }
+            $brandId = $koneksi->insert_id;
 
-            $productStmt = $koneksi->prepare(
-                "INSERT INTO products (product_name, price, stock, user_id) VALUES (?, ?, ?, ?)"
-            );
-            $productStmt->bind_param("sdii", $productName, $priceValue, $stockValue, $userId);
+            // AUTO MASUK VERIFIKASI
+            $stmt = $koneksi->prepare("
+                INSERT INTO verifications (brand_id, status, verified_at)
+                VALUES (?, 'pending', NOW())
+            ");
+            $stmt->bind_param("i", $brandId);
+            $stmt->execute();
 
-            if (!$productStmt->execute()) {
-                throw new Exception('Produk gagal disimpan.');
-            }
-
-            $koneksi->commit();
-            header("Location: products.php");
+            header("Location: brand_list.php");
             exit;
+
         } catch (Throwable $e) {
-            $koneksi->rollback();
-            $error = 'Brand atau produk gagal disimpan. Silakan coba lagi.';
+            $error = 'Gagal menyimpan brand.';
         }
     }
 }
@@ -77,95 +83,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include 'partials/header.php'; ?>
 
 <div class="mx-auto max-w-2xl card">
-    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-red-700">Daftarkan Brand</p>
-    <h1 class="mt-3 text-2xl font-black text-red-900">Lengkapi brand dan produk pertama Anda</h1>
-    <p class="mt-3 text-slate-600">
-        Isi data brand dan satu produk pertama untuk memulai katalog Anda.
-    </p>
+
+    <h1 class="text-2xl font-bold text-red-900">Daftarkan Brand</h1>
 
     <?php if ($error): ?>
-        <div class="mt-4 rounded bg-red-100 p-3 text-red-700"><?= htmlspecialchars($error, ENT_QUOTES); ?></div>
+        <div class="mt-4 bg-red-100 p-3 text-red-700 rounded"><?= $error ?></div>
     <?php endif; ?>
 
-    <form method="post" class="mt-6 space-y-4">
+    <!-- 🔒 JIKA MASIH ADA BRAND BELUM VERIFIED -->
+    <?php if ($lockTambah): ?>
 
-        <div>
-            <label for="brand_name" class="mb-1 block text-sm font-medium text-slate-700">Brand Name</label>
-            <input
-                id="brand_name"
-                type="text"
-                name="brand_name"
-                value="<?= htmlspecialchars($brandName, ENT_QUOTES); ?>"
-                placeholder="Contoh: Outletin Coffee"
-                class="input !mt-0"
-                required
-            >
+        <div class="mt-4 bg-yellow-100 text-yellow-800 p-4 rounded">
+            🚫 Anda masih memiliki brand dengan status 
+            <b><?= htmlspecialchars($status) ?></b>.  
+            Silakan tunggu verifikasi admin sebelum menambah brand baru.
         </div>
 
-        <div>
-            <label for="description" class="mb-1 block text-sm font-medium text-slate-700">Description</label>
-            <textarea
-                id="description"
-                name="description"
-                rows="5"
-                placeholder="Jelaskan singkat tentang brand Anda"
-                class="input !mt-0 min-h-[140px]"
-                required
-            ><?= htmlspecialchars($description, ENT_QUOTES); ?></textarea>
-        </div>
+    <?php else: ?>
 
-        <div class="rounded-2xl border border-red-100 bg-red-50/50 p-4">
-            <h2 class="text-lg font-bold text-red-900">Tambah Produk</h2>
-            <p class="mt-1 text-sm text-slate-600">Masukkan satu produk awal yang akan tampil di katalog Anda.</p>
+        <!-- ✅ FORM MUNCUL HANYA JIKA BOLEH TAMBAH -->
+        <form method="post" class="mt-6 space-y-4">
 
-            <div class="mt-4 space-y-4">
-                <div>
-                    <label for="product_name" class="mb-1 block text-sm font-medium text-slate-700">Nama Produk</label>
-                    <input
-                        id="product_name"
-                        type="text"
-                        name="product_name"
-                        value="<?= htmlspecialchars($productName, ENT_QUOTES); ?>"
-                        placeholder="Contoh: Kopi Susu Gula Aren"
-                        class="input !mt-0"
-                        required
-                    >
-                </div>
+            <input type="text" name="brand_name" placeholder="Nama Brand" class="input" required>
 
-                <div>
-                    <label for="price" class="mb-1 block text-sm font-medium text-slate-700">Harga</label>
-                    <input
-                        id="price"
-                        type="number"
-                        name="price"
-                        value="<?= htmlspecialchars($price, ENT_QUOTES); ?>"
-                        placeholder="Contoh: 18000"
-                        min="1"
-                        step="0.01"
-                        class="input !mt-0"
-                        required
-                    >
-                </div>
+            <textarea name="description" placeholder="Deskripsi" class="input" required></textarea>
 
-                <div>
-                    <label for="stock" class="mb-1 block text-sm font-medium text-slate-700">Stok</label>
-                    <input
-                        id="stock"
-                        type="number"
-                        name="stock"
-                        value="<?= htmlspecialchars($stock, ENT_QUOTES); ?>"
-                        placeholder="Contoh: 50"
-                        min="0"
-                        step="1"
-                        class="input !mt-0"
-                        required
-                    >
-                </div>
-            </div>
-        </div>
+            <button type="submit" class="btn w-full">Simpan</button>
+        </form>
 
-        <button type="submit" class="btn w-full">Simpan Brand dan Produk</button>
-    </form>
+    <?php endif; ?>
+
 </div>
 
 <?php include 'partials/footer.php'; ?>

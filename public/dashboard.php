@@ -7,46 +7,58 @@ $userName = htmlspecialchars($_SESSION['user_name'] ?? 'Pengguna', ENT_QUOTES);
 $userRole = htmlspecialchars($_SESSION['user_role'] ?? 'user', ENT_QUOTES);
 $rawUserRole = $_SESSION['user_role'] ?? 'user';
 
-if ($rawUserRole === 'franchisor') {
-    $brandCheckQuery = $koneksi->prepare("SELECT brand_id FROM brands WHERE user_id = ? LIMIT 1");
-    $brandCheckQuery->bind_param("i", $userId);
-    $brandCheckQuery->execute();
-    $brandExists = (bool) $brandCheckQuery->get_result()->fetch_assoc();
-
-    if (!$brandExists) {
-        header("Location: register_brand.php");
-        exit;
-    }
-}
-
+/* =========================
+   DEFAULT COUNT
+========================= */
 $outletCount = 0;
 $productCount = 0;
+$brandCount = 0;
 
+/* =========================
+   KHUSUS FRANCHISOR
+========================= */
 if ($rawUserRole === 'franchisor') {
-    $outletQuery = $koneksi->prepare(
-        "SELECT COUNT(*) AS total
-         FROM outlets o
-         INNER JOIN brands b ON o.brand_id = b.brand_id
-         WHERE b.user_id = ?"
-    );
-    $outletQuery->bind_param("i", $userId);
-    $outletQuery->execute();
-    $outletCount = (int) ($outletQuery->get_result()->fetch_assoc()['total'] ?? 0);
 
-    $productQuery = $koneksi->prepare(
-        "SELECT COUNT(*) AS total
-         FROM products p
-         INNER JOIN brands b ON p.brand_id = b.brand_id
-         WHERE b.user_id = ?"
-    );
-    $productQuery->bind_param("i", $userId);
-    $productQuery->execute();
-    $productCount = (int) ($productQuery->get_result()->fetch_assoc()['total'] ?? 0);
-} else {
-    $outletQuery = $koneksi->prepare("SELECT COUNT(*) AS total FROM outlets WHERE user_id = ?");
-    $outletQuery->bind_param("i", $userId);
-    $outletQuery->execute();
-    $outletCount = (int) ($outletQuery->get_result()->fetch_assoc()['total'] ?? 0);
+    // ✅ HITUNG BRAND (TANPA LIMIT)
+    $stmt = $koneksi->prepare("
+        SELECT COUNT(*) as total_brand
+        FROM brands
+        WHERE franchisor_id = ?
+    ");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $brandData = $stmt->get_result()->fetch_assoc();
+    $brandCount = $brandData['total_brand'] ?? 0;
+
+    // ❗ Kalau belum punya brand → redirect
+    if ($brandCount == 0) {
+        header("Location: register_brand.php?msg=belum_punya_brand");
+        exit;
+    }
+
+    // ✅ HITUNG PRODUK (JOIN BRAND)
+    $stmt = $koneksi->prepare("
+        SELECT COUNT(p.produk_id) as total_produk
+        FROM produk p
+        JOIN brands b ON p.brand_id = b.brand_id
+        WHERE b.franchisor_id = ?
+    ");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $productData = $stmt->get_result()->fetch_assoc();
+    $productCount = $productData['total_produk'] ?? 0;
+
+    // ✅ HITUNG OUTLET (JOIN BRAND)
+    $stmt = $koneksi->prepare("
+        SELECT COUNT(o.outlet_id) as total_outlet
+        FROM outlets o
+        JOIN brands b ON o.brand_id = b.brand_id
+        WHERE b.franchisor_id = ?
+    ");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $outletData = $stmt->get_result()->fetch_assoc();
+    $outletCount = $outletData['total_outlet'] ?? 0;
 }
 ?>
 
@@ -58,79 +70,57 @@ if ($rawUserRole === 'franchisor') {
         Halo, selamat datang <?= $userName; ?>
     </h1>
     <p class="mt-3 max-w-2xl text-white/90">
-        Anda login sebagai <span class="font-bold capitalize text-white"><?= $userRole; ?></span>. Kelola outlet dan produk Anda dari satu dashboard.
+        Anda login sebagai <span class="font-bold capitalize text-white"><?= $userRole; ?></span>.
     </p>
 </section>
 
-<section class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+<section class="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+
     <div class="card">
-        <p class="text-sm font-medium uppercase tracking-wide text-slate-500">Outlet</p>
-        <h2 class="mt-3 text-3xl font-black text-red-900"><?= $outletCount; ?></h2>
-        <p class="mt-2 text-sm text-slate-600">Jumlah outlet yang Anda kelola saat ini.</p>
+        <p class="text-sm text-slate-500">Brand</p>
+        <h2 class="text-3xl font-black text-red-900"><?= $brandCount; ?></h2>
+        <p class="text-sm text-slate-600">Total brand yang Anda miliki</p>
     </div>
 
     <div class="card">
-        <p class="text-sm font-medium uppercase tracking-wide text-slate-500">Produk</p>
-        <h2 class="mt-3 text-3xl font-black text-red-900"><?= $productCount; ?></h2>
-        <p class="mt-2 text-sm text-slate-600">Total produk yang sudah terdaftar di sistem.</p>
+        <p class="text-sm text-slate-500">Outlet</p>
+        <h2 class="text-3xl font-black text-red-900"><?= $outletCount; ?></h2>
+        <p class="text-sm text-slate-600">Jumlah outlet aktif</p>
     </div>
 
     <div class="card">
-        <p class="text-sm font-medium uppercase tracking-wide text-slate-500">Role</p>
-        <h2 class="mt-3 text-2xl font-black capitalize text-red-900"><?= $userRole; ?></h2>
-        <p class="mt-2 text-sm text-slate-600">Hak akses akun Anda mengikuti data role di database.</p>
+        <p class="text-sm text-slate-500">Produk</p>
+        <h2 class="text-3xl font-black text-red-900"><?= $productCount; ?></h2>
+        <p class="text-sm text-slate-600">Total produk terdaftar</p>
     </div>
+
+    <div class="card">
+        <p class="text-sm text-slate-500">Role</p>
+        <h2 class="text-xl font-black text-red-900 capitalize"><?= $userRole; ?></h2>
+    </div>
+
 </section>
 
 <section class="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+
     <div class="card">
         <h3 class="text-xl font-bold text-red-900">Ringkasan</h3>
-        <p class="mt-3 leading-7 text-slate-600">
-            Dashboard ini menampilkan informasi akun Anda secara ringkas. Gunakan menu Outlet untuk mengelola cabang dan menu Produk untuk mengatur katalog barang.
+        <p class="mt-3 text-slate-600">
+            Kelola brand, produk, dan outlet Anda dengan mudah dari dashboard ini.
         </p>
     </div>
 
     <div class="card">
         <h3 class="text-xl font-bold text-red-900">Aksi Cepat</h3>
         <div class="mt-4 flex flex-wrap gap-3">
+            <a href="brand_list.php" class="btn">Kelola Brand</a>
             <a href="outlet.php" class="btn">Kelola Outlet</a>
-            <a href="products.php" class="inline-flex items-center justify-center rounded-lg border border-red-300 px-4 py-2 font-medium text-red-800 transition hover:bg-red-100">
+            <a href="products.php" class="border border-red-300 px-4 py-2 rounded-lg text-red-800 hover:bg-red-100">
                 Kelola Produk
             </a>
         </div>
     </div>
+
 </section>
-
-<div class="hidden max-w-6xl mx-auto p-4 mt-6">
-
-    <div class="bg-white p-6 rounded-xl shadow border border-red-100">
-        <h2 class="text-xl font-bold text-red-900">
-            Selamat datang, <?= $_SESSION['user_name']; ?> 👋
-        </h2>
-        <p class="text-gray-500">
-            Role: <b><?= $_SESSION['user_role']; ?></b>
-        </p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-
-        <div class="bg-white p-5 rounded-xl shadow border border-red-100">
-            <h3 class="font-semibold">Outlet</h3>
-            <p class="text-sm text-gray-500">Kelola outlet</p>
-        </div>
-
-        <div class="bg-white p-5 rounded-xl shadow border border-red-100">
-            <h3 class="font-semibold">Produk</h3>
-            <p class="text-sm text-gray-500">Kelola produk</p>
-        </div>
-
-        <div class="bg-white p-5 rounded-xl shadow border border-red-100">
-            <h3 class="font-semibold">Transaksi</h3>
-            <p class="text-sm text-gray-500">Kelola transaksi</p>
-        </div>
-
-    </div>
-
-</div>
 
 <?php include 'partials/footer.php'; ?>
