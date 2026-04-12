@@ -30,7 +30,7 @@ $status = '';
 
 if ($check) {
     $lockTambah = true;
-    $status = $check['status'] ?? 'pending';
+    $status = $check['status'] ?: 'pending';
 }
 
 /* =========================
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param("i", $brandId);
             $stmt->execute();
 
-            header("Location: brand_list.php");
+            header("Location: brand_list.php?msg=menunggu_verifikasi");
             exit;
 
         } catch (Throwable $e) {

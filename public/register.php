@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 
 <head>
-    <link rel="stylesheet" href="/outletin/scr/output.tmp.css">
+    <link rel="stylesheet" href="/outletin/scr/output-build.css">
 </head>
 
 <body class="bg-red-50">

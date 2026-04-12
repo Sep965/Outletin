@@ -1,137 +1,17 @@
 <?php
 include '../includes/auth_admin.php';
 $conn = new mysqli("localhost", "root", "", "outletin");
-?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard Super Admin</title>
+function statusBadgeClass(string $status): string
+{
+    return match ($status) {
+        'approved' => 'bg-emerald-600 text-white',
+        'verified' => 'bg-blue-600 text-white',
+        'rejected' => 'bg-red-600 text-white',
+        default => 'bg-amber-500 text-white',
+    };
+}
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial;
-            background: #f4f4f4;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 220px;
-            height: 100vh;
-            background: #800000;
-            position: fixed;
-            color: white;
-            padding-top: 20px;
-        }
-
-        .sidebar h2 {
-            text-align: center;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 12px;
-            color: white;
-            text-decoration: none;
-        }
-
-        .sidebar a:hover {
-            background: #a52a2a;
-        }
-
-        /* MAIN */
-        .main {
-            margin-left: 220px;
-            padding: 20px;
-        }
-
-        /* TITLE */
-        .title {
-            background: #800000;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        /* TABLE */
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        th {
-            background: #800000;
-            color: white;
-            padding: 10px;
-        }
-
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        tr:hover {
-            background: #f9f9f9;
-        }
-
-        /* BUTTON */
-        .btn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 2px;
-        }
-
-        .approve { background: green; color: white; }
-        .verified { background: blue; color: white; }
-        .reject { background: red; color: white; }
-
-        /* STATUS */
-        .badge {
-            padding: 5px 10px;
-            border-radius: 5px;
-            color: white;
-        }
-
-        .pending { background: orange; }
-        .approved { background: green; }
-        .verified-badge { background: blue; }
-        .rejected { background: red; }
-    </style>
-</head>
-
-<body>
-
-<!-- SIDEBAR -->
-<div class="sidebar">
-    <h2>SUPER ADMIN</h2>
-    <a href="#">🏠 Dashboard</a>
-    <a href="#">📩 Verifikasi Brand</a>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-
-    <div class="title">
-        <h2>Manajemen Brand</h2>
-    </div>
-
-    <table>
-        <tr>
-            <th>Brand</th>
-            <th>Email</th>
-            <th>Deskripsi</th>
-            <th>Status</th>
-            <th>Aksi</th>
-        </tr>
-
-<?php
 $query = "
 SELECT 
     b.brand_id,
@@ -145,55 +25,90 @@ LEFT JOIN verifications v ON b.brand_id = v.brand_id
 ";
 
 $data = $conn->query($query);
-
-while($row = $data->fetch_assoc()) {
-    $status = $row['status'] ?? 'pending';
 ?>
-        <tr>
-            <td><?php echo $row['brand_name']; ?></td>
-            <td><?php echo $row['email']; ?></td>
-            <td><?php echo $row['description']; ?></td>
 
-            <td>
-                <span class="badge 
-                    <?php 
-                        if($status=='approved') echo 'approved';
-                        elseif($status=='verified') echo 'verified-badge';
-                        elseif($status=='rejected') echo 'rejected';
-                        else echo 'pending';
-                    ?>">
-                    <?php echo strtoupper($status); ?>
-                </span>
-            </td>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Super Admin</title>
+    <link rel="stylesheet" href="/outletin/scr/output-build.css">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800">
+<div class="min-h-screen lg:flex">
+    <aside class="bg-red-900 px-6 py-6 text-white lg:min-h-screen lg:w-60 lg:flex-shrink-0">
+        <h2 class="text-center text-xl font-extrabold tracking-wide">SUPER ADMIN</h2>
+        <nav class="mt-6 space-y-2">
+            <a href="dashboard_superadmin.php" class="block rounded-lg px-3 py-3 font-medium transition hover:bg-red-800">Dashboard</a>
+            <a href="Admin_Verification_Brand.php" class="block rounded-lg px-3 py-3 font-medium transition hover:bg-red-800">Verifikasi Brand</a>
+        </nav>
+    </aside>
 
-            <td>
-                <!-- APPROVED -->
-                <form method="POST" action="proses_verifikasi.php" style="display:inline;">
-                    <input type="hidden" name="brand_id" value="<?php echo $row['brand_id']; ?>">
-                    <input type="hidden" name="action" value="approved">
-                    <button class="btn approve">✔ Approved</button>
-                </form>
+    <main class="flex-1 p-4 sm:p-6 lg:p-8">
+        <div class="rounded-2xl bg-red-900 px-5 py-4 text-white shadow-sm">
+            <h1 class="text-2xl font-extrabold">Manajemen Brand</h1>
+            <p class="mt-1 text-sm text-red-100">Kelola status verifikasi brand dari satu dashboard admin.</p>
+        </div>
 
-                <!-- VERIFIED -->
-                <form method="POST" action="proses_verifikasi.php" style="display:inline;">
-                    <input type="hidden" name="brand_id" value="<?php echo $row['brand_id']; ?>">
-                    <input type="hidden" name="action" value="verified">
-                    <button class="btn verified">✔ Verified</button>
-                </form>
+        <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left">
+                    <thead class="bg-red-900 text-white">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold">Brand</th>
+                            <th class="px-4 py-3 font-semibold">Email</th>
+                            <th class="px-4 py-3 font-semibold">Deskripsi</th>
+                            <th class="px-4 py-3 font-semibold">Status</th>
+                            <th class="px-4 py-3 font-semibold">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <?php while ($row = $data->fetch_assoc()): ?>
+                            <?php $status = $row['status'] ?? 'pending'; ?>
+                            <tr class="align-top transition hover:bg-slate-50">
+                                <td class="px-4 py-3 font-semibold text-slate-900"><?= htmlspecialchars($row['brand_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="px-4 py-3 text-slate-700"><?= htmlspecialchars($row['email'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="px-4 py-3 text-slate-700"><?= htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide <?= statusBadgeClass($status); ?>">
+                                        <?= htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?>
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex flex-wrap gap-2">
+                                        <form method="POST" action="proses_verifikasi.php" class="inline">
+                                            <input type="hidden" name="brand_id" value="<?= (int) $row['brand_id']; ?>">
+                                            <input type="hidden" name="action" value="approved">
+                                            <button class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                                                Approve
+                                            </button>
+                                        </form>
 
-                <!-- REJECT -->
-                <form method="POST" action="proses_verifikasi.php" style="display:inline;">
-                    <input type="hidden" name="brand_id" value="<?php echo $row['brand_id']; ?>">
-                    <input type="hidden" name="action" value="rejected">
-                    <button class="btn reject">✖ Reject</button>
-                </form>
-            </td>
-        </tr>
-<?php } ?>
+                                        <form method="POST" action="proses_verifikasi.php" class="inline">
+                                            <input type="hidden" name="brand_id" value="<?= (int) $row['brand_id']; ?>">
+                                            <input type="hidden" name="action" value="verified">
+                                            <button class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                                                Verify
+                                            </button>
+                                        </form>
 
-    </table>
-
+                                        <form method="POST" action="proses_verifikasi.php" class="inline">
+                                            <input type="hidden" name="brand_id" value="<?= (int) $row['brand_id']; ?>">
+                                            <input type="hidden" name="action" value="rejected">
+                                            <button class="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
+                                                Reject
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
 </div>
-
 </body>
 </html>

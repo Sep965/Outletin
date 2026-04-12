@@ -23,5 +23,5 @@ $stmt = $koneksi->prepare("
 $stmt->bind_param("si", $status, $brandId);
 $stmt->execute();
 
-header("Location: admin_verification_brand.php");
+header("Location: Admin_Verification_Brand.php");
 exit;

@@ -2,23 +2,80 @@
 include '../includes/auth.php';
 require '../includes/koneksi.php';
 
-$userId = $_SESSION['user_id'];
+$userRole = $_SESSION['user_role'] ?? 'user';
+if ($userRole !== 'franchisor') {
+    header("Location: brand.php");
+    exit;
+}
+
+$userId = (int) ($_SESSION['user_id'] ?? 0);
+$message = '';
 
 $stmt = $koneksi->prepare("
-    SELECT * FROM brands WHERE franchisor_id = ?
+    SELECT
+        b.*,
+        COALESCE(NULLIF(v.status, ''), 'pending') AS verification_status
+    FROM brands b
+    LEFT JOIN verifications v ON b.brand_id = v.brand_id
+    WHERE b.franchisor_id = ?
+      AND COALESCE(NULLIF(v.status, ''), 'pending') = 'verified'
+    ORDER BY b.brand_id DESC
 ");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
+
+$pendingStmt = $koneksi->prepare("
+    SELECT COUNT(*) AS total_pending
+    FROM brands b
+    LEFT JOIN verifications v ON b.brand_id = v.brand_id
+    WHERE b.franchisor_id = ?
+      AND COALESCE(NULLIF(v.status, ''), 'pending') <> 'verified'
+");
+$pendingStmt->bind_param("i", $userId);
+$pendingStmt->execute();
+$pendingData = $pendingStmt->get_result()->fetch_assoc();
+$pendingCount = (int) ($pendingData['total_pending'] ?? 0);
+
+$msg = $_GET['msg'] ?? '';
+
+if ($msg === 'menunggu_verifikasi') {
+    $message = 'Brand berhasil dikirim dan sekarang menunggu verifikasi superadmin. Brand akan tampil di daftar setelah statusnya verified.';
+} elseif ($msg === 'hapus_berhasil') {
+    $message = 'Brand berhasil dihapus.';
+} elseif ($msg === 'hapus_gagal_terkait') {
+    $message = 'Brand tidak bisa dihapus karena masih terhubung dengan data verifikasi. Hapus atau ubah data terkait terlebih dahulu.';
+} elseif ($msg === 'hapus_tidak_ditemukan') {
+    $message = 'Brand tidak ditemukan atau Anda tidak punya akses untuk menghapusnya.';
+} elseif ($msg === 'hapus_invalid') {
+    $message = 'Permintaan hapus brand tidak valid.';
+} elseif ($msg === 'hapus_gagal') {
+    $message = 'Terjadi kesalahan saat menghapus brand.';
+}
 ?>
 
 <?php include 'partials/header.php'; ?>
 
 <div class="max-w-6xl mx-auto mt-8">
 
+    <?php if ($message): ?>
+        <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+            <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($pendingCount > 0): ?>
+        <div class="mb-5 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-yellow-800">
+            Anda punya <?= $pendingCount ?> brand yang masih menunggu verifikasi admin, jadi belum tampil di daftar brand aktif.
+        </div>
+    <?php endif; ?>
+
     <!-- HEADER -->
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-red-900">Daftar Brand</h1>
+        <div>
+            <h1 class="text-2xl font-bold text-red-900">Daftar Brand</h1>
+            <p class="mt-1 text-sm text-slate-600">Hanya brand dengan status <span class="font-semibold text-red-800">verified</span> yang tampil di sini.</p>
+        </div>
         <a href="register_brand.php" class="btn">+ Tambah Brand</a>
     </div>
 

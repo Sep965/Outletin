@@ -27,7 +27,7 @@ if ($isLoggedIn && $userRole === 'franchisor') {
     <title>Outletin</title>
 
     <!-- Tailwind FIX -->
-    <link rel="stylesheet" href="/outletin/scr/output.tmp.css">
+    <link rel="stylesheet" href="/outletin/scr/output-build.css">
 </head>
 
 <body class="bg-red-50">
@@ -39,11 +39,16 @@ if ($isLoggedIn && $userRole === 'franchisor') {
         <?php if ($isLoggedIn && !$isAuthPage): ?>
         <nav class="space-x-4">
             <a href="dashboard.php">Dashboard</a>
-            <?php if ($showRegisterBrandMenu): ?>
-            <a href="register_brand.php">Daftarkan Brand</a>
+            <?php if ($userRole === 'franchisor'): ?>
+                <a href="brand_list.php">Brand</a>
+                <?php if ($showRegisterBrandMenu): ?>
+                <a href="register_brand.php">Daftarkan Brand</a>
+                <?php endif; ?>
+                <a href="outlet.php">Outlet</a>
+                <a href="products.php">Produk</a>
+            <?php elseif ($userRole === 'franchisee'): ?>
+                <a href="brand.php">Brand</a>
             <?php endif; ?>
-            <a href="outlet.php">Outlet</a>
-            <a href="products.php">Produk</a>
             <a href="logout.php" class="inline-flex items-center rounded-lg bg-white px-3 py-1 font-medium text-red-800">Logout</a>
         </nav>
         <?php else: ?>

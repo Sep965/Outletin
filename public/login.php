@@ -49,6 +49,10 @@ function getPostLoginRedirect(mysqli $koneksi, array $user): string
         return 'dashboard_superadmin.php';
     }
 
+    if ($role === 'franchisee') {
+        return 'brand.php';
+    }
+
     return 'dashboard.php';
 }
 
@@ -83,7 +87,7 @@ if(isset($_POST['login'])){
         // OPTIONAL (tidak wajib sebenarnya)
         $_SESSION['name'] = $data['name'];
 
-        header("Location: dashboard.php"); //  sementara bypass redirect logic
+        header("Location: " . getPostLoginRedirect($koneksi, $data));
         exit;
 
     } else {

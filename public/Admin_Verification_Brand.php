@@ -79,12 +79,12 @@ $result = $stmt->get_result();
 
                         <?php if ($status !== 'verified'): ?>
 
-                            <a href="proses_verifikasi.php?id=<?= $row['brand_id'] ?>&aksi=approve"
+                            <a href="Proses_Verifikasi.php?id=<?= $row['brand_id'] ?>&aksi=approve"
                                class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
                                ✔ Approve
                             </a>
 
-                            <a href="proses_verifikasi.php?id=<?= $row['brand_id'] ?>&aksi=reject"
+                            <a href="Proses_Verifikasi.php?id=<?= $row['brand_id'] ?>&aksi=reject"
                                class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
                                onclick="return confirm('Yakin reject brand ini?')">
                                ✖ Reject

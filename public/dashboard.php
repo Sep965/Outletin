@@ -13,6 +13,7 @@ $rawUserRole = $_SESSION['user_role'] ?? 'user';
 $outletCount = 0;
 $productCount = 0;
 $brandCount = 0;
+$verifiedBrandCount = 0;
 
 /* =========================
    KHUSUS FRANCHISOR
@@ -21,9 +22,11 @@ if ($rawUserRole === 'franchisor') {
 
     // ✅ HITUNG BRAND (TANPA LIMIT)
     $stmt = $koneksi->prepare("
-        SELECT COUNT(*) as total_brand
-        FROM brands
-        WHERE franchisor_id = ?
+        SELECT COUNT(*) AS total_brand
+        FROM brands b
+        LEFT JOIN verifications v ON b.brand_id = v.brand_id
+        WHERE b.franchisor_id = ?
+          AND COALESCE(NULLIF(v.status, ''), 'pending') = 'verified'
     ");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
@@ -60,6 +63,18 @@ if ($rawUserRole === 'franchisor') {
     $outletData = $stmt->get_result()->fetch_assoc();
     $outletCount = $outletData['total_outlet'] ?? 0;
 }
+
+if ($rawUserRole === 'franchisee') {
+    $stmt = $koneksi->prepare("
+        SELECT COUNT(*) as total_brand
+        FROM brands b
+        LEFT JOIN verifications v ON b.brand_id = v.brand_id
+        WHERE COALESCE(v.status, 'pending') = 'verified'
+    ");
+    $stmt->execute();
+    $brandData = $stmt->get_result()->fetch_assoc();
+    $verifiedBrandCount = $brandData['total_brand'] ?? 0;
+}
 ?>
 
 <?php include 'partials/header.php'; ?>
@@ -78,8 +93,10 @@ if ($rawUserRole === 'franchisor') {
 
     <div class="card">
         <p class="text-sm text-slate-500">Brand</p>
-        <h2 class="text-3xl font-black text-red-900"><?= $brandCount; ?></h2>
-        <p class="text-sm text-slate-600">Total brand yang Anda miliki</p>
+        <h2 class="text-3xl font-black text-red-900"><?= $rawUserRole === 'franchisee' ? $verifiedBrandCount : $brandCount; ?></h2>
+        <p class="text-sm text-slate-600">
+            <?= $rawUserRole === 'franchisee' ? 'Brand terverifikasi yang bisa Anda ajukan' : 'Total brand yang Anda miliki'; ?>
+        </p>
     </div>
 
     <div class="card">
@@ -106,18 +123,24 @@ if ($rawUserRole === 'franchisor') {
     <div class="card">
         <h3 class="text-xl font-bold text-red-900">Ringkasan</h3>
         <p class="mt-3 text-slate-600">
-            Kelola brand, produk, dan outlet Anda dengan mudah dari dashboard ini.
+            <?= $rawUserRole === 'franchisee'
+                ? 'Lihat brand yang tersedia lalu ajukan join brand atau pembukaan outlet dari satu tempat.'
+                : 'Kelola brand, produk, dan outlet Anda dengan mudah dari dashboard ini.'; ?>
         </p>
     </div>
 
     <div class="card">
         <h3 class="text-xl font-bold text-red-900">Aksi Cepat</h3>
         <div class="mt-4 flex flex-wrap gap-3">
-            <a href="brand_list.php" class="btn">Kelola Brand</a>
-            <a href="outlet.php" class="btn">Kelola Outlet</a>
-            <a href="products.php" class="border border-red-300 px-4 py-2 rounded-lg text-red-800 hover:bg-red-100">
-                Kelola Produk
-            </a>
+            <?php if ($rawUserRole === 'franchisee'): ?>
+                <a href="brand.php" class="btn">Lihat Brand</a>
+            <?php else: ?>
+                <a href="brand_list.php" class="btn">Kelola Brand</a>
+                <a href="outlet.php" class="btn">Kelola Outlet</a>
+                <a href="products.php" class="border border-red-300 px-4 py-2 rounded-lg text-red-800 hover:bg-red-100">
+                    Kelola Produk
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
